@@ -1,0 +1,48 @@
+html,
+body {
+  box-sizing: border-box;
+  font-size: 16px;
+  font-family: Arial, Helvetica, sans-serif;
+  width: 250px;
+}
+
+*,
+*:before,
+*:after {
+  box-sizing: inherit;
+}
+
+h1 {
+  font-size: 1.1rem;
+}
+
+h2 {
+  font-size: 1rem;
+}
+
+.hidden {
+  display: none;
+}
+
+button {
+  border: none;
+  border-radius: 4px;
+  padding: 0.5rem 0.75rem;
+  font-size: 1rem;
+  cursor: pointer;
+  background-color: #e5f2f2;
+}
+
+button:hover {
+  background-color: #cff2f2;
+}
+
+button.delete {
+  background-color: #5b0d1b;
+  color: #f3f3f3;
+}
+
+button.delete:active,
+button.delete:hover {
+  background-color: #8b3141;
+}

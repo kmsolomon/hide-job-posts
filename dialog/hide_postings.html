@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="main.css" />
+  </head>
+
+  <body>
+    <div id="popup-content">
+      <h1>Hide LinkedIn Job Posts</h1>
+      <h2>Hide companies</h2>
+      <label for="companyName">Company name:</label>
+      <input id="companyName" type="text" />
+      <button id="addCompany" type="button">Add to hide list</button>
+
+      <div id="listContainer" class="hide">
+        <h2>Hiding posts from these companies:</h2>
+        <ul id="companyList"></ul>
+        <button id="resetList" type="reset">Clear all</button>
+      </div>
+    </div>
+    <div id="error-content" class="hidden">
+      <p>Unable to hide job postings on this page.</p>
+      <p>
+        Please make sure you are looking at LinkedIn job search results, and try
+        again.
+      </p>
+    </div>
+    <script src="main.js"></script>
+  </body>
+</html>

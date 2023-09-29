@@ -1,0 +1,20 @@
+{
+  "manifest_version": 2,
+  "name": "Hide LinkedIn Job Posts",
+  "version": "1.0",
+
+  "description": "An extension that lets you enter the company name of job postings that you don't want to see in your LinkedIn job search results.",
+  "homepage_url": "https://github.com/kmsolomon/hide-job-posts",
+  "icons": {
+    "48": "icons/hide-job-posts-48.jpg",
+    "96": "icons/hide-job-posts-96.jpg"
+  },
+
+  "permissions": ["activeTab", "storage"],
+
+  "browser_action": {
+    "default_icon": "icons/hide-job-posts-32.jpg",
+    "default_title": "Hide LinkedIn Job Posts",
+    "default_popup": "dialog/hide_postings.html"
+  }
+}
