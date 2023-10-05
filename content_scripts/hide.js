@@ -1,13 +1,17 @@
 (() => {
-  if (window.hideJobPostingsHasRun) {
-    return;
-  }
-  window.hideJobPostingsHasRun = true;
-
   const resultsListSelector = "ul.jobs-search__results-list";
   const companyNameSelector = "base-search-card__subtitle";
   const postHideClassName = "ext-hide";
   const resultsList = document.querySelector(resultsListSelector);
+
+  function initialHide(e) {
+    if (resultsList === null || resultsList.children.length === 0) {
+      return;
+    }
+    browser.runtime.sendMessage({ command: "initHide" });
+  }
+
+  window.addEventListener("load", initialHide);
 
   function hideCompany(companyName) {
     const resultsCompanies =

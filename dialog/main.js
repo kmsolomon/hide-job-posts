@@ -60,8 +60,6 @@ async function removeFromStorage(companyName) {
   const storedNames = await browser.storage.local.get("companyNames");
   const currentNames = storedNames.companyNames;
 
-  console.log("remove -- current names", currentNames);
-
   if (Array.isArray(currentNames) && currentNames.length > 0) {
     const filteredNames = currentNames.filter(
       (name) => name.toLowerCase() !== companyName.toLowerCase()
@@ -84,8 +82,6 @@ async function handleRemoveListItem(e) {
     currentWindow: true,
   });
   if (Array.isArray(gettingActiveTab)) {
-    console.log("here");
-    console.log(gettingActiveTab[0].id);
     browser.tabs.sendMessage(gettingActiveTab[0].id, {
       command: "showCompany",
       companyName: companyName,
@@ -93,29 +89,25 @@ async function handleRemoveListItem(e) {
   }
 }
 
-async function hideStoredResults(names) {
-  console.log("should hide stored results");
+async function hideStoredResults(storedNames) {
   const gettingActiveTab = await browser.tabs.query({
     active: true,
     currentWindow: true,
   });
-  console.log("hide these names", names);
-  if (Array.isArray(gettingActiveTab)) {
-    console.log("here");
-    console.log(gettingActiveTab[0].id);
+
+  if (Array.isArray(gettingActiveTab) && storedNames) {
     browser.tabs.sendMessage(gettingActiveTab[0].id, {
       command: "hideMultiple",
-      names: names,
+      names: storedNames,
     });
   }
 }
 
 async function initializePopup() {
-  let storedNames = await browser.storage.local.get("companyNames");
+  const storedNames = await browser.storage.local.get("companyNames");
   const addButton = document.getElementById("addCompany");
   const resetButton = document.getElementById("resetList");
   const companyName = document.getElementById("companyName");
-  const companyList = document.getElementById("companyList");
 
   if (
     typeof storedNames === "object" &&
@@ -138,8 +130,6 @@ async function initializePopup() {
     clearList(true);
   }
 
-  hideStoredResults(storedNames.companyNames);
-
   addButton.addEventListener("click", async (e) => {
     if (companyName && companyName.value) {
       if (storedNames.companyNames.length === 0) {
@@ -150,9 +140,8 @@ async function initializePopup() {
         active: true,
         currentWindow: true,
       });
+
       if (Array.isArray(gettingActiveTab)) {
-        console.log("here");
-        console.log(gettingActiveTab[0].id);
         browser.tabs.sendMessage(gettingActiveTab[0].id, {
           command: "hideCompany",
           companyName: companyName.value,
@@ -182,20 +171,6 @@ async function initializePopup() {
       });
     }
   });
-
-  function onError(error) {
-    console.log(`Error: ${error}`);
-  }
-
-  const gettingActiveTab = await browser.tabs.query({
-    active: true,
-    currentWindow: true,
-  });
-
-  const insertingCSS = browser.tabs.insertCSS(gettingActiveTab[0].id, {
-    file: "/content_scripts/hide-style.css",
-  });
-  insertingCSS.then(null, onError);
 }
 
 function reportExecuteScriptError(error) {
@@ -206,7 +181,21 @@ function reportExecuteScriptError(error) {
   );
 }
 
-browser.tabs
-  .executeScript({ file: "/content_scripts/hide.js" })
-  .then(initializePopup)
-  .catch(reportExecuteScriptError);
+async function initHidePostings() {
+  const storedNames = await browser.storage.local.get("companyNames");
+  if (
+    typeof storedNames.companyNames !== "undefined" &&
+    Array.isArray(storedNames.companyNames) &&
+    storedNames.companyNames.length > 0
+  ) {
+    hideStoredResults(storedNames.companyNames); // todo, error handling
+  }
+}
+
+browser.runtime.onMessage.addListener((message) => {
+  if (message.command === "initHide") {
+    initHidePostings();
+  }
+});
+
+initializePopup();

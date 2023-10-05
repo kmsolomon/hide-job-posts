@@ -16,5 +16,15 @@
     "default_icon": "icons/hide-job-posts-32.jpg",
     "default_title": "Hide LinkedIn Job Posts",
     "default_popup": "dialog/hide_postings.html"
-  }
+  },
+
+  "background": { "scripts": ["/dialog/main.js"] },
+
+  "content_scripts": [
+    {
+      "matches": ["*://*.linkedin.com/jobs/*"],
+      "js": ["/content_scripts/hide.js"],
+      "css": ["/content_scripts/hide-style.css"]
+    }
+  ]
 }
