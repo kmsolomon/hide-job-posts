@@ -103,11 +103,39 @@ async function hideStoredResults(storedNames) {
   }
 }
 
+async function addCompanyHandler(event) {
+  const storedNames = await browser.storage.local.get("companyNames");
+  const companyNameInput = document.getElementById("companyName");
+
+  if (companyNameInput && companyNameInput.value) {
+    if (storedNames.companyNames.length === 0) {
+      clearList();
+    }
+
+    const gettingActiveTab = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (Array.isArray(gettingActiveTab)) {
+      browser.tabs.sendMessage(gettingActiveTab[0].id, {
+        command: "hideCompany",
+        companyName: companyNameInput.value,
+      });
+    }
+
+    storedNames.companyNames.push(companyNameInput.value);
+    browser.storage.local.set(storedNames);
+    addToList(companyNameInput.value);
+    companyNameInput.value = "";
+  }
+}
+
 async function initializePopup() {
   const storedNames = await browser.storage.local.get("companyNames");
   const addButton = document.getElementById("addCompany");
   const resetButton = document.getElementById("resetList");
-  const companyName = document.getElementById("companyName");
+  const companyNameInput = document.getElementById("companyName");
 
   if (
     typeof storedNames === "object" &&
@@ -130,28 +158,10 @@ async function initializePopup() {
     clearList(true);
   }
 
-  addButton.addEventListener("click", async (e) => {
-    if (companyName && companyName.value) {
-      if (storedNames.companyNames.length === 0) {
-        clearList();
-      }
-
-      const gettingActiveTab = await browser.tabs.query({
-        active: true,
-        currentWindow: true,
-      });
-
-      if (Array.isArray(gettingActiveTab)) {
-        browser.tabs.sendMessage(gettingActiveTab[0].id, {
-          command: "hideCompany",
-          companyName: companyName.value,
-        });
-      }
-
-      storedNames.companyNames.push(companyName.value);
-      browser.storage.local.set(storedNames);
-      addToList(companyName.value);
-      companyName.value = "";
+  addButton.addEventListener("click", addCompanyHandler);
+  companyNameInput.addEventListener("keydown", async (e) => {
+    if (e.code.toLowerCase() === "enter") {
+      await addCompanyHandler(e);
     }
   });
 

@@ -14,7 +14,6 @@ To do. Add detailed instructions/screenshots.
 
 - :bug: - it still sometimes keeping the placeholder when adding to a previously empty list
 - :bug: - sometimes end up with same company twice in the stored names -- need to find steps to repro
-- maybe hiding on page load without poking extension?
 - improve to make sure same entry can't be added twice
 - Context menu option to hide instead of typing the name
 - show details about amount of postings hidden from each company
@@ -22,5 +21,4 @@ To do. Add detailed instructions/screenshots.
 - run hide again when more results are loaded
 - maybe display total number of hidden posts on the page on top of the icon?
 - error handling
-- also need to add item if user hits enter key on the input field
 - make it prettier
