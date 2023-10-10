@@ -8,11 +8,14 @@
 
   <body>
     <div id="popup-content">
-      <h1>Hide LinkedIn Job Posts</h1>
+      <h1>Hide Job Posts</h1>
       <h2>Hide companies</h2>
-      <label for="companyName">Company name:</label>
-      <input id="companyName" type="text" />
-      <button id="addCompany" type="button">Add to hide list</button>
+      <div>
+        <label for="companyName">Company name:</label>
+        <div id="companyNameError" class="hide"></div>
+        <input id="companyName" type="text" />
+        <button id="addCompany" type="button">Add to hide list</button>
+      </div>
 
       <div id="listContainer" class="hide">
         <h2>Hiding posts from these companies:</h2>

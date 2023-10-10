@@ -103,11 +103,63 @@ async function hideStoredResults(storedNames) {
   }
 }
 
+function resetNameFieldError() {
+  const companyNameInput = document.getElementById("companyName");
+  const companyNameError = document.getElementById("companyNameError");
+  companyNameError.replaceChildren();
+  companyNameError.classList.push("hide");
+  companyNameInput.classList.remove("input-error");
+  companyNameInput.removeAttribute("aria-describedby");
+}
+
+function setNameFieldError(errorType) {
+  const companyNameInput = document.getElementById("companyName");
+  const companyNameError = document.getElementById("companyNameError");
+
+  if (errorType === "duplicate") {
+    companyNameError.innerText =
+      "Error: The value you entered is already in the list.";
+  } else if (errorType === "empty") {
+    companyNameError.innerText = "Error: The company name cannot be blank";
+  } else {
+    console.log(
+      `Unexpected error type for the company name input field: ${errorType}`
+    );
+    return;
+  }
+
+  companyNameInput.setAttribute("aria-describedby", "companyNameError");
+  companyNameInput.classList.add("input-error");
+  companyNameError.classList.remove("hide");
+}
+
+function isValidCompanyName(nameInput, currentNamesArray) {
+  let isValid = true;
+  const lowercaseNames = currentNamesArray.map((element) =>
+    element.toLowerCase()
+  );
+
+  if (typeof nameInput === "undefined" || nameInput === null) {
+    isValid = false;
+  } else if (nameInput.value === "") {
+    setNameFieldError("empty");
+    isValid = false;
+  } else if (lowercaseNames.includes(nameInput.value.toLowerCase())) {
+    setNameFieldError("duplicate");
+    isValid = false;
+  }
+
+  return isValid;
+}
+
 async function addCompanyHandler(event) {
   const storedNames = await browser.storage.local.get("companyNames");
   const companyNameInput = document.getElementById("companyName");
 
-  if (companyNameInput && companyNameInput.value) {
+  // todo, maybe add separate validation method for storenames.companyname since it happens in a few places
+  if (isValidCompanyName(companyNameInput, storedNames.companyNames)) {
+    const newName = companyNameInput.value;
+
     if (storedNames.companyNames.length === 0) {
       clearList();
     }
@@ -120,13 +172,13 @@ async function addCompanyHandler(event) {
     if (Array.isArray(gettingActiveTab)) {
       browser.tabs.sendMessage(gettingActiveTab[0].id, {
         command: "hideCompany",
-        companyName: companyNameInput.value,
+        companyName: newName,
       });
     }
 
-    storedNames.companyNames.push(companyNameInput.value);
+    storedNames.companyNames.push(newName);
     browser.storage.local.set(storedNames);
-    addToList(companyNameInput.value);
+    addToList(newName);
     companyNameInput.value = "";
   }
 }
