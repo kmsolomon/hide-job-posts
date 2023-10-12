@@ -16,13 +16,16 @@ function clearList(includePlaceholder = false) {
 
 // TODO -- sometimes not clearing placeholder when we add item to list
 // Add a company to the hide list in the popup
-function addToList(companyName) {
+function addToList(companyName, postsVisible) {
   const companyList = document.getElementById("companyList");
   const newCompanyLi = document.createElement("li");
   const newCompanyText = document.createElement("span");
   const newCompanyRemove = document.createElement("button", {
     type: "button",
     ariaLabel: `Remove ${companyName} from list`,
+  });
+  const newCompanyToggle = document.createElement("button", {
+    type: "button",
   });
 
   // Style & content for list item
@@ -34,7 +37,19 @@ function addToList(companyName) {
   newCompanyRemove.appendChild(document.createTextNode("Remove"));
   newCompanyRemove.addEventListener("click", handleRemoveListItem);
 
+  // Style & content for the list item toggle button
+  newCompanyToggle.className = "btn";
+  if (postsVisible) {
+    newCompanyToggle.classList.add("visible");
+    newCompanyToggle.appendChild(document.createTextNode("Hide"));
+  } else {
+    newCompanyToggle.appendChild(document.createTextNode("Show"));
+  }
+
+  newCompanyToggle.addEventListener("click", handleToggleVisibility);
+
   newCompanyLi.appendChild(newCompanyText);
+  newCompanyLi.appendChild(newCompanyToggle);
   newCompanyLi.appendChild(newCompanyRemove);
   companyList.appendChild(newCompanyLi);
 }
@@ -55,17 +70,25 @@ function removeFromList(node) {
   }
 }
 
+// changing companyNames to an array of company
+
+// companyNames: [{
+//   name: string,
+//   total: number,
+//   show: boolean
+// }]
+
 // Remove the given company name from the local extension storage
 async function removeFromStorage(companyName) {
-  const storedNames = await browser.storage.local.get("companyNames");
-  const currentNames = storedNames.companyNames;
+  const storedCompanies = await browser.storage.local.get("companyNames");
+  const currentCompanies = storedCompanies.companyNames;
 
-  if (Array.isArray(currentNames) && currentNames.length > 0) {
-    const filteredNames = currentNames.filter(
-      (name) => name.toLowerCase() !== companyName.toLowerCase()
+  if (Array.isArray(currentCompanies) && currentCompanies.length > 0) {
+    const filteredNames = currentCompanies.filter(
+      (company) => company.name.toLowerCase() !== companyName.toLowerCase()
     );
 
-    if (filteredNames.length < currentNames.length) {
+    if (filteredNames.length < currentCompanies.length) {
       await browser.storage.local.set({ companyNames: filteredNames });
     }
   }
@@ -74,7 +97,7 @@ async function removeFromStorage(companyName) {
 // Event handler -- For the button to remove a company name from the hide list
 async function handleRemoveListItem(e) {
   const parentElement = this.parentElement;
-  const companyName = parentElement.querySelector(".li-company-name").innerText; // should we switch this to innerText?
+  const companyName = parentElement.querySelector(".li-company-name").innerText;
   removeFromList(parentElement);
   await removeFromStorage(companyName);
   const gettingActiveTab = await browser.tabs.query({
@@ -86,6 +109,24 @@ async function handleRemoveListItem(e) {
       command: "showCompany",
       companyName: companyName,
     });
+  }
+}
+
+function handleToggleVisibility(e) {
+  const parentElement = this.parentElement;
+  const companyName = parentElement.querySelector(".li-company-name").innerText;
+  toggleStorageVisibility(companyName);
+
+  // todo probably UI stuff here to change aria-label and button icon
+  const button = e.target;
+  if (button.classList.contains("visible")) {
+    button.classList.remove("visible");
+    button.innerText = "Show";
+    button.ariaLabel = `Show postings from ${companyName}`;
+  } else {
+    button.classList.add("visible");
+    button.innerText = "Hide";
+    button.ariaLabel = `Hide postings from ${companyName}`;
   }
 }
 
@@ -107,7 +148,7 @@ function resetNameFieldError() {
   const companyNameInput = document.getElementById("companyName");
   const companyNameError = document.getElementById("companyNameError");
   companyNameError.replaceChildren();
-  companyNameError.classList.push("hide");
+  companyNameError.classList.add("hide");
   companyNameInput.classList.remove("input-error");
   companyNameInput.removeAttribute("aria-describedby");
 }
@@ -133,10 +174,10 @@ function setNameFieldError(errorType) {
   companyNameError.classList.remove("hide");
 }
 
-function isValidCompanyName(nameInput, currentNamesArray) {
+function isValidCompanyName(nameInput, currentCompaniesArray) {
   let isValid = true;
-  const lowercaseNames = currentNamesArray.map((element) =>
-    element.toLowerCase()
+  const lowercaseNames = currentCompaniesArray.map((element) =>
+    element.name.toLowerCase()
   );
 
   if (typeof nameInput === "undefined" || nameInput === null) {
@@ -152,48 +193,108 @@ function isValidCompanyName(nameInput, currentNamesArray) {
   return isValid;
 }
 
+async function toggleStorageVisibility(companyName) {
+  const storedCompanies = await browser.storage.local.get("companyNames");
+  let visible = false;
+
+  if (storedCompanies.companyNames) {
+    const updatedCompanies = storedCompanies.companyNames.map((company) => {
+      if (company.name === companyName) {
+        visible = !company.visible;
+        return {
+          ...company,
+          visible,
+        };
+      } else {
+        return company;
+      }
+    });
+    await browser.storage.local.set({ companyNames: updatedCompanies });
+
+    // we get active tab in a few places, possibility for refactoring
+    const gettingActiveTab = await browser.tabs.query({
+      active: true,
+      currentWindow: true,
+    });
+
+    if (visible) {
+      //fire show message
+      if (Array.isArray(gettingActiveTab)) {
+        // todo -- will need to figure out how to get number of hidden posts after hiding
+        browser.tabs.sendMessage(gettingActiveTab[0].id, {
+          command: "showCompany",
+          companyName: companyName,
+        });
+      }
+    } else {
+      //fire hide message
+      if (Array.isArray(gettingActiveTab)) {
+        // todo -- will need to figure out how to get number of hidden posts after hiding
+        browser.tabs.sendMessage(gettingActiveTab[0].id, {
+          command: "hideCompany",
+          companyName: companyName,
+        });
+      }
+    }
+  }
+}
+
 async function addCompanyHandler(event) {
-  const storedNames = await browser.storage.local.get("companyNames");
+  const storedCompanies = await browser.storage.local.get("companyNames");
   const companyNameInput = document.getElementById("companyName");
+  const updatedCompanies = { companyNames: [] };
+
+  console.log(storedCompanies);
 
   // todo, maybe add separate validation method for storenames.companyname since it happens in a few places
-  if (isValidCompanyName(companyNameInput, storedNames.companyNames)) {
+  if (isValidCompanyName(companyNameInput, storedCompanies.companyNames)) {
     const newName = companyNameInput.value;
+    updatedCompanies.companyNames = [...storedCompanies.companyNames];
 
-    if (storedNames.companyNames.length === 0) {
+    if (storedCompanies.companyNames.length === 0) {
+      // clearing the placeholder text
       clearList();
     }
 
+    updatedCompanies.companyNames.push({
+      name: newName,
+      visible: false,
+      numPosts: 0,
+    });
+    browser.storage.local.set(updatedCompanies);
+
+    // we get active tab in a few places, possibility for refactoring
     const gettingActiveTab = await browser.tabs.query({
       active: true,
       currentWindow: true,
     });
 
     if (Array.isArray(gettingActiveTab)) {
+      // todo -- will need to figure out how to get number of hidden posts after hiding
       browser.tabs.sendMessage(gettingActiveTab[0].id, {
         command: "hideCompany",
         companyName: newName,
       });
     }
 
-    storedNames.companyNames.push(newName);
-    browser.storage.local.set(storedNames);
-    addToList(newName);
+    addToList(newName, false);
     companyNameInput.value = "";
   }
 }
 
 async function initializePopup() {
-  const storedNames = await browser.storage.local.get("companyNames");
+  let storedNames = await browser.storage.local.get("companyNames"); //think something is wrong with initialization for the new structure
   const addButton = document.getElementById("addCompany");
   const resetButton = document.getElementById("resetList");
   const companyNameInput = document.getElementById("companyName");
-
+  console.log("initialize popup stored names", storedNames);
   if (
     typeof storedNames === "object" &&
     !storedNames.hasOwnProperty("companyNames")
   ) {
+    console.log("need to update stored names");
     storedNames = { companyNames: [] };
+    await browser.storage.local.set({ companyNames: [] });
   } else if (typeof storedNames !== "object") {
     console.log("Something went wrong");
     // TODO error
@@ -201,7 +302,7 @@ async function initializePopup() {
 
   if (storedNames.companyNames && storedNames.companyNames.length > 0) {
     storedNames.companyNames.forEach((element) => {
-      addToList(element);
+      addToList(element.name, element.visible);
     });
   } else if (
     storedNames.companyNames &&
@@ -250,7 +351,11 @@ async function initHidePostings() {
     Array.isArray(storedNames.companyNames) &&
     storedNames.companyNames.length > 0
   ) {
-    hideStoredResults(storedNames.companyNames); // todo, error handling
+    const hiddenCompanies = storedNames.companyNames.filter(
+      (company) => !company.visible
+    );
+    const names = hiddenCompanies.map((company) => company.name);
+    hideStoredResults(names); // todo, error handling
   }
 }
 

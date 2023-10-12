@@ -11,8 +11,6 @@
     browser.runtime.sendMessage({ command: "initHide" });
   }
 
-  window.addEventListener("load", initialHide);
-
   function hideCompany(companyName) {
     const resultsCompanies =
       resultsList.getElementsByClassName(companyNameSelector);
@@ -77,4 +75,6 @@
       showAll();
     }
   });
+
+  initialHide();
 })();
