@@ -15,8 +15,7 @@ To do. Add detailed instructions/screenshots.
 - :bug: - it still sometimes keeping the placeholder when adding to a previously empty list
 - :bug: - sometimes end up with same company twice in the stored names -- need to find steps to repro
 - Context menu option to hide instead of typing the name
-- show details about amount of postings hidden from each company
-- run hide again when more results are loaded
 - maybe display total number of hidden posts on the page on top of the icon?
 - error handling
-- make it prettier
+- make it prettier (visually)
+- make it prettier (refactoring)

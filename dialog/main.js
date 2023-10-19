@@ -84,6 +84,7 @@ function removeFromList(node) {
   }
 }
 
+// -- Potential refactor, switching updateUICount + UpdateUICountMultiple into one function
 function updateUICount(companyName, updatedCount) {
   const companyList = document.getElementById("companyTableBody");
   if (companyList) {
@@ -92,6 +93,19 @@ function updateUICount(companyName, updatedCount) {
       if (name.innerText === companyName) {
         const countSpan = row.querySelector(".table-company-count span");
         countSpan.innerText = updatedCount;
+      }
+    }
+  }
+}
+
+function updateUICountMultiple(updateMap) {
+  const companyList = document.getElementById("companyTableBody");
+  if (companyList) {
+    for (const row of companyList.childNodes) {
+      const name = row.querySelector(".table-company-name span");
+      if (typeof updateMap.get(name.innerText.toLowerCase()) !== "undefined") {
+        const countSpan = row.querySelector(".table-company-count span");
+        countSpan.innerText = updateMap.get(name.innerText.toLowerCase());
       }
     }
   }
@@ -123,12 +137,11 @@ async function removeFromStorage(companyName) {
 
 // Event handler -- For the button to remove a company name from the hide list
 async function handleRemoveListItem(e) {
-  console.log(e.target);
   const parentRow = e.target.closest("tr");
   const companyName = parentRow.querySelector(
     ".table-company-name span"
   ).innerText;
-  console.log("remove name", companyName);
+
   removeFromList(parentRow);
   await removeFromStorage(companyName);
   const gettingActiveTab = await browser.tabs.query({
@@ -276,8 +289,6 @@ async function addCompanyHandler(event) {
   const companyNameInput = document.getElementById("companyName");
   const updatedCompanies = { companyNames: [] };
 
-  console.log(storedCompanies);
-
   // todo, maybe add separate validation method for storenames.companyname since it happens in a few places
   if (isValidCompanyName(companyNameInput, storedCompanies.companyNames)) {
     const newName = companyNameInput.value;
@@ -333,17 +344,38 @@ async function updateHiddenCount(companyName, updatedCount) {
   }
 }
 
+// really what we're going to do is update all the counts/replace the thing in storage I think
+// potential refactor -- could just send an updateMap for single count update as well then it's the same function? except maybe the UI update part
+async function updateMultipleCount(updateMap) {
+  const storedCompanies = await browser.storage.local.get("companyNames");
+  if (
+    Array.isArray(storedCompanies.companyNames) &&
+    storedCompanies.companyNames.length > 0
+  ) {
+    const updatedCompanies = storedCompanies.companyNames.map((company) => {
+      if (typeof updateMap.get(company.name.toLowerCase()) !== "undefined") {
+        return {
+          ...company,
+          numPosts: updateMap.get(company.name.toLowerCase()),
+        };
+      } else return company;
+    });
+
+    await browser.storage.local.set({ companyNames: updatedCompanies });
+
+    updateUICountMultiple(updateMap); //todo -- technically only need to do this if the pop up is open at the time, but not sure if we are able to detect that easily?
+  }
+}
+
 async function initializePopup() {
   let storedNames = await browser.storage.local.get("companyNames"); //think something is wrong with initialization for the new structure
   const addButton = document.getElementById("addCompany");
   const resetButton = document.getElementById("resetList");
   const companyNameInput = document.getElementById("companyName");
-  console.log("initialize popup stored names", storedNames);
   if (
     typeof storedNames === "object" &&
     !storedNames.hasOwnProperty("companyNames")
   ) {
-    console.log("need to update stored names");
     storedNames = { companyNames: [] };
     await browser.storage.local.set({ companyNames: [] });
   } else if (typeof storedNames !== "object") {
@@ -379,7 +411,6 @@ async function initializePopup() {
     });
 
     if (Array.isArray(gettingActiveTab)) {
-      console.log(gettingActiveTab[0].id);
       browser.tabs.sendMessage(gettingActiveTab[0].id, {
         command: "showAll",
       });
@@ -415,6 +446,8 @@ browser.runtime.onMessage.addListener((message) => {
     initHidePostings();
   } else if (message.command === "updateCount") {
     updateHiddenCount(message.companyName, message.count);
+  } else if (message.command === "updateMultipleCount") {
+    updateMultipleCount(message.updates);
   }
 });
 
