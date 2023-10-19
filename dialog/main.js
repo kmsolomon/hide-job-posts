@@ -1,25 +1,31 @@
 // Clear the hide list in the popup
 function clearList(includePlaceholder = false) {
-  const companyList = document.getElementById("companyList");
+  const companyList = document.getElementById("companyTableBody");
   companyList.replaceChildren();
 
   if (includePlaceholder) {
-    const placeholderLi = document.createElement("li");
-    const placeholderText = document.createTextNode(
-      "Currently no hidden companies."
-    );
+    const placeholderRow = document.createElement("tr");
+    const placeholderTextTd = document.createElement("td");
+    const placeholderCountTd = document.createElement("td");
+    const placeholderText = document.createTextNode("None yet.");
 
-    placeholderLi.appendChild(placeholderText);
-    companyList.appendChild(placeholderLi);
+    placeholderTextTd.appendChild(placeholderText);
+    placeholderRow.appendChild(placeholderTextTd);
+    placeholderRow.appendChild(placeholderCountTd);
+
+    companyList.appendChild(placeholderRow);
   }
 }
 
 // TODO -- sometimes not clearing placeholder when we add item to list
 // Add a company to the hide list in the popup
-function addToList(companyName, postsVisible) {
-  const companyList = document.getElementById("companyList");
-  const newCompanyLi = document.createElement("li");
+function addToList(companyName, postsVisible, count = 0) {
+  const companyList = document.getElementById("companyTableBody");
+  const newCompanyRow = document.createElement("tr");
+  const newCompanyNameTd = document.createElement("td");
+  const newCompanyCountTd = document.createElement("td");
   const newCompanyText = document.createElement("span");
+  const newCompanyCount = document.createElement("span");
   const newCompanyRemove = document.createElement("button", {
     type: "button",
     ariaLabel: `Remove ${companyName} from list`,
@@ -29,8 +35,10 @@ function addToList(companyName, postsVisible) {
   });
 
   // Style & content for list item
-  newCompanyText.className = "li-company-name";
+  newCompanyNameTd.className = "table-company-name";
   newCompanyText.textContent = companyName;
+  newCompanyCountTd.className = "table-company-count";
+  newCompanyCount.textContent = count;
 
   // Style & content for the list item remove button
   newCompanyRemove.className = "btn";
@@ -48,25 +56,44 @@ function addToList(companyName, postsVisible) {
 
   newCompanyToggle.addEventListener("click", handleToggleVisibility);
 
-  newCompanyLi.appendChild(newCompanyText);
-  newCompanyLi.appendChild(newCompanyToggle);
-  newCompanyLi.appendChild(newCompanyRemove);
-  companyList.appendChild(newCompanyLi);
+  newCompanyNameTd.appendChild(newCompanyText);
+  newCompanyNameTd.appendChild(newCompanyToggle);
+  newCompanyNameTd.appendChild(newCompanyRemove);
+  newCompanyCountTd.appendChild(newCompanyCount);
+  newCompanyRow.appendChild(newCompanyNameTd);
+  newCompanyRow.appendChild(newCompanyCountTd);
+  companyList.appendChild(newCompanyRow);
 }
 
 // Remove the given node from the hide list
 function removeFromList(node) {
-  const companyList = document.getElementById("companyList");
+  const companyList = document.getElementById("companyTableBody");
   companyList.removeChild(node);
 
   if (companyList.children.length === 0) {
-    const placeholderLi = document.createElement("li");
-    const placeholderText = document.createTextNode(
-      "Currently no hidden companies."
-    );
+    const placeholderRow = document.createElement("tr");
+    const placeholderTextTd = document.createElement("td");
+    const placeholderCountTd = document.createElement("td");
+    const placeholderText = document.createTextNode("None yet.");
 
-    placeholderLi.appendChild(placeholderText);
-    companyList.appendChild(placeholderLi);
+    placeholderTextTd.appendChild(placeholderText);
+    placeholderRow.appendChild(placeholderTextTd);
+    placeholderRow.appendChild(placeholderCountTd);
+
+    companyList.appendChild(placeholderRow);
+  }
+}
+
+function updateUICount(companyName, updatedCount) {
+  const companyList = document.getElementById("companyTableBody");
+  if (companyList) {
+    for (const row of companyList.childNodes) {
+      const name = row.querySelector(".table-company-name span");
+      if (name.innerText === companyName) {
+        const countSpan = row.querySelector(".table-company-count span");
+        countSpan.innerText = updatedCount;
+      }
+    }
   }
 }
 
@@ -96,9 +123,13 @@ async function removeFromStorage(companyName) {
 
 // Event handler -- For the button to remove a company name from the hide list
 async function handleRemoveListItem(e) {
-  const parentElement = this.parentElement;
-  const companyName = parentElement.querySelector(".li-company-name").innerText;
-  removeFromList(parentElement);
+  console.log(e.target);
+  const parentRow = e.target.closest("tr");
+  const companyName = parentRow.querySelector(
+    ".table-company-name span"
+  ).innerText;
+  console.log("remove name", companyName);
+  removeFromList(parentRow);
   await removeFromStorage(companyName);
   const gettingActiveTab = await browser.tabs.query({
     active: true,
@@ -114,7 +145,9 @@ async function handleRemoveListItem(e) {
 
 function handleToggleVisibility(e) {
   const parentElement = this.parentElement;
-  const companyName = parentElement.querySelector(".li-company-name").innerText;
+  const companyName = parentElement.querySelector(
+    ".table-company-name span"
+  ).innerText;
   toggleStorageVisibility(companyName);
 
   // todo probably UI stuff here to change aria-label and button icon
@@ -217,10 +250,10 @@ async function toggleStorageVisibility(companyName) {
       currentWindow: true,
     });
 
+    // todo -- future spot for potential cleanup
     if (visible) {
       //fire show message
       if (Array.isArray(gettingActiveTab)) {
-        // todo -- will need to figure out how to get number of hidden posts after hiding
         browser.tabs.sendMessage(gettingActiveTab[0].id, {
           command: "showCompany",
           companyName: companyName,
@@ -229,7 +262,6 @@ async function toggleStorageVisibility(companyName) {
     } else {
       //fire hide message
       if (Array.isArray(gettingActiveTab)) {
-        // todo -- will need to figure out how to get number of hidden posts after hiding
         browser.tabs.sendMessage(gettingActiveTab[0].id, {
           command: "hideCompany",
           companyName: companyName,
@@ -270,7 +302,6 @@ async function addCompanyHandler(event) {
     });
 
     if (Array.isArray(gettingActiveTab)) {
-      // todo -- will need to figure out how to get number of hidden posts after hiding
       browser.tabs.sendMessage(gettingActiveTab[0].id, {
         command: "hideCompany",
         companyName: newName,
@@ -279,6 +310,26 @@ async function addCompanyHandler(event) {
 
     addToList(newName, false);
     companyNameInput.value = "";
+  }
+}
+
+async function updateHiddenCount(companyName, updatedCount) {
+  const storedCompanies = await browser.storage.local.get("companyNames");
+  if (
+    Array.isArray(storedCompanies.companyNames) &&
+    storedCompanies.companyNames.length > 0
+  ) {
+    const updatedCompanies = storedCompanies.companyNames.map((company) => {
+      if (company.name === companyName) {
+        return {
+          ...company,
+          numPosts: updatedCount,
+        };
+      } else return company;
+    });
+
+    await browser.storage.local.set({ companyNames: updatedCompanies });
+    updateUICount(companyName, updatedCount);
   }
 }
 
@@ -302,7 +353,7 @@ async function initializePopup() {
 
   if (storedNames.companyNames && storedNames.companyNames.length > 0) {
     storedNames.companyNames.forEach((element) => {
-      addToList(element.name, element.visible);
+      addToList(element.name, element.visible, element.numPosts);
     });
   } else if (
     storedNames.companyNames &&
@@ -362,6 +413,8 @@ async function initHidePostings() {
 browser.runtime.onMessage.addListener((message) => {
   if (message.command === "initHide") {
     initHidePostings();
+  } else if (message.command === "updateCount") {
+    updateHiddenCount(message.companyName, message.count);
   }
 });
 

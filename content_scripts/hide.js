@@ -12,6 +12,7 @@
   }
 
   function hideCompany(companyName) {
+    let count = 0;
     const resultsCompanies =
       resultsList.getElementsByClassName(companyNameSelector);
 
@@ -20,8 +21,15 @@
       if (companyName.toLowerCase() === compareName) {
         const parentLi = element.closest("li");
         parentLi.classList.add(postHideClassName);
+        count++;
       }
     }
+
+    browser.runtime.sendMessage({
+      command: "updateCount",
+      companyName: companyName,
+      count: count,
+    });
   }
 
   function showCompany(companyName) {

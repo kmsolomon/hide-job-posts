@@ -16,7 +16,6 @@ To do. Add detailed instructions/screenshots.
 - :bug: - sometimes end up with same company twice in the stored names -- need to find steps to repro
 - Context menu option to hide instead of typing the name
 - show details about amount of postings hidden from each company
-- add toggle to show/hide postings without removing company from the filter
 - run hide again when more results are loaded
 - maybe display total number of hidden posts on the page on top of the icon?
 - error handling
