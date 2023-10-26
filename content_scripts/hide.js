@@ -1,3 +1,5 @@
+"use strict";
+
 (() => {
   const resultsListSelector = "ul.jobs-search__results-list";
   const companyNameSelector = "base-search-card__subtitle";
@@ -113,8 +115,24 @@
       hideMultiple(lowercaseNames);
     } else if (message.command === "showAll") {
       showAll();
+    } else if (message.command === "getCompanyNameToHide") {
+      let element = browser.menus.getTargetElement(message.id);
+      const name = getNameFromElement(element);
+      if (name) {
+        hideCompany(name);
+      }
     }
   });
+
+  function getNameFromElement(element) {
+    if (element && element instanceof Element) {
+      const parent = element.parentElement;
+      const nameElement = parent.querySelector(`.${companyNameSelector}`);
+      return nameElement.innerText.trim();
+    } else {
+      return null;
+    }
+  }
 
   initialHide();
 })();
