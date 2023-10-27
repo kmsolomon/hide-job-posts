@@ -41,10 +41,13 @@ async function getTabId() {
 }
 
 async function addCompanyToStorage(companyName) {
-  const storedCompanies = await browser.storage.local.get("companyNames");
-  const companyNameInput = document.getElementById("companyName");
+  const storedCompanies = await browser.storage.local.get("companyNames"); // TODO -- should verify it's not a dupe before we add
   const updatedCompanies = { companyNames: [] };
   const tabId = await getTabId();
+
+  if (Array.isArray(storedCompanies.companyNames)) {
+    updatedCompanies.companyNames = [...storedCompanies.companyNames];
+  }
 
   updatedCompanies.companyNames.push({
     name: companyName,
