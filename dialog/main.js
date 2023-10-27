@@ -265,6 +265,7 @@ async function initializePopup() {
   }
 
   addButton.addEventListener("click", addCompanyHandler);
+
   companyNameInput.addEventListener("keydown", async (e) => {
     if (e.code.toLowerCase() === "enter") {
       await addCompanyHandler(e);
@@ -300,5 +301,32 @@ async function initHidePostings() {
     hideStoredResults(names); // todo, error handling
   }
 }
+
+function onStorageChange(changes, area) {
+  if (area === "local" && changes.hasOwnProperty("companyNames")) {
+    const oldValues = changes.companyNames.oldValue;
+    const newValues = changes.companyNames.newValue;
+    const countUpdates = new Map();
+
+    // Looking for when the numPosts have updated
+    if (oldValues.length === newValues.length) {
+      for (let i = 0; i < oldValues.length; i++) {
+        if (
+          oldValues[i].name === newValues[i].name &&
+          oldValues[i].numPosts !== newValues[i].numPosts
+        ) {
+          countUpdates.set(newValues[i].name, newValues[i].numPosts);
+        }
+      }
+
+      if (countUpdates.size > 0) {
+        updateUICountMultiple(countUpdates);
+      }
+    }
+  }
+}
+
+// Listening to when the browser storage updates so the popup knows to update the UI
+browser.storage.onChanged.addListener(onStorageChange);
 
 initializePopup();

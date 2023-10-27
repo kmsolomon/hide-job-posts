@@ -163,7 +163,6 @@ async function updateHiddenCount(companyName, updatedCount) {
       });
 
       await browser.storage.local.set({ companyNames: updatedCompanies });
-      //updateUICount(companyName, updatedCount); // TODO, need to figure out how to trigger a rerender if the popup is open
     } else {
       const updatedCompanies = storedCompanies.companyNames.concat({
         name: companyName,
@@ -171,7 +170,6 @@ async function updateHiddenCount(companyName, updatedCount) {
         numPosts: updatedCount,
       });
       await browser.storage.local.set({ companyNames: updatedCompanies });
-      // addToList(companyName, updatedCount); // TODO, need to figure out how to add when pop up is open
     }
   }
 }
