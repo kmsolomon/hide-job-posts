@@ -176,6 +176,7 @@ async function updateHiddenCount(companyName, updatedCount) {
 
 async function updateMultipleCount(updateMap) {
   const storedCompanies = await browser.storage.local.get("companyNames");
+  let total = 0;
   if (
     Array.isArray(storedCompanies.companyNames) &&
     storedCompanies.companyNames.length > 0
@@ -191,7 +192,12 @@ async function updateMultipleCount(updateMap) {
 
     await browser.storage.local.set({ companyNames: updatedCompanies });
 
-    //updateUICountMultiple(updateMap); //todo -- technically only need to do this if the pop up is open at the time, but not sure if we are able to detect that easily?
+    updatedCompanies.forEach((company) => {
+      if (!company.visible) {
+        total += company.numPosts;
+      }
+    });
+    browser.browserAction.setBadgeText({ text: total.toString() });
   }
 }
 
@@ -225,3 +231,5 @@ browser.runtime.onMessage.addListener(async (message) => {
       break;
   }
 });
+
+browser.browserAction.setBadgeBackgroundColor({ color: "#333333" });

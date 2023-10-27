@@ -12,7 +12,6 @@ To do. Add detailed instructions/screenshots.
 
 ## Work in progress:
 
-- maybe display total number of hidden posts on the page on top of the icon?
 - error handling
 - make it prettier (visually)
 - make it prettier (refactoring)

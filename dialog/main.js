@@ -307,6 +307,7 @@ function onStorageChange(changes, area) {
     const oldValues = changes.companyNames.oldValue;
     const newValues = changes.companyNames.newValue;
     const countUpdates = new Map();
+    let total = 0;
 
     // Looking for when the numPosts have updated
     if (oldValues.length === newValues.length) {
@@ -323,6 +324,15 @@ function onStorageChange(changes, area) {
         updateUICountMultiple(countUpdates);
       }
     }
+
+    // For showing the current number of hidden posts on the badge text
+    for (let i = 0; i < newValues.length; i++) {
+      if (!newValues[i].visible) {
+        total += newValues[i].numPosts;
+      }
+    }
+
+    browser.browserAction.setBadgeText({ text: total.toString() });
   }
 }
 
