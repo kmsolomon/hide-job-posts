@@ -10,7 +10,7 @@
     "96": "icons/hide-job-posts-96.jpg"
   },
 
-  "permissions": ["activeTab", "storage", "contextMenus", "menus"],
+  "permissions": ["activeTab", "storage", "contextMenus", "menus", "tabs"],
 
   "browser_action": {
     "default_icon": "icons/hide-job-posts-32.jpg",

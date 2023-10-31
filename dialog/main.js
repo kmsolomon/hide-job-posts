@@ -331,8 +331,10 @@ function onStorageChange(changes, area) {
         total += newValues[i].numPosts;
       }
     }
-
-    browser.browserAction.setBadgeText({ text: total.toString() });
+    const displayBadgeText =
+      total !== 0 ? (total > 99 ? "99+" : total.toString()) : "";
+    browser.storage.local.set({ totalHidden: total });
+    browser.browserAction.setBadgeText({ text: displayBadgeText });
   }
 }
 

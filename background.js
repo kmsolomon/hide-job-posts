@@ -147,6 +147,7 @@ async function initHidePostings() {
 
 async function updateHiddenCount(companyName, updatedCount) {
   const storedCompanies = await browser.storage.local.get("companyNames");
+  let storedTotal = await browser.storage.local.get("totalHidden");
   if (Array.isArray(storedCompanies.companyNames)) {
     // if company already exists
     const nameExists = storedCompanies.companyNames.some(
@@ -171,6 +172,14 @@ async function updateHiddenCount(companyName, updatedCount) {
       });
       await browser.storage.local.set({ companyNames: updatedCompanies });
     }
+
+    if (typeof storedTotal.totalHidden === "number") {
+      const total = updatedCount + storedTotal.totalHidden;
+      await browser.storage.local.set({ totalHidden: total });
+    } else {
+      await browser.storage.local.set({ totalHidden: updatedCount });
+    }
+    updateBadgeText();
   }
 }
 
@@ -197,7 +206,9 @@ async function updateMultipleCount(updateMap) {
         total += company.numPosts;
       }
     });
-    browser.browserAction.setBadgeText({ text: total.toString() });
+    const displayBadgeText =
+      total !== 0 ? (total > 99 ? "99+" : total.toString()) : "";
+    browser.browserAction.setBadgeText({ text: displayBadgeText });
   }
 }
 
@@ -231,5 +242,35 @@ browser.runtime.onMessage.addListener(async (message) => {
       break;
   }
 });
+
+const filter = {
+  url: [{ urlMatches: "*://*.linkedin.com/jobs/*" }],
+};
+
+function isSearchResultsUrl(url) {
+  const matches = /\.*:\/\/.*\.linkedin\.com\/jobs\/\.*/i;
+  return matches.test(url);
+}
+
+async function updateBadgeText() {
+  let total = await browser.storage.local.get("totalHidden");
+  if (total.totalHidden && typeof total.totalHidden === "number") {
+    const hidden = total.totalHidden;
+    browser.browserAction.setBadgeText({
+      text: hidden > 99 ? "99+" : hidden === 0 ? "" : hidden.toString(),
+    });
+  }
+}
+
+async function handleActivated(activeInfo) {
+  const tabInfo = await browser.tabs.get(activeInfo.tabId);
+  if (tabInfo.url && isSearchResultsUrl(tabInfo.url)) {
+    updateBadgeText();
+  } else {
+    browser.browserAction.setBadgeText({ text: "" });
+  }
+}
+
+browser.tabs.onActivated.addListener(handleActivated);
 
 browser.browserAction.setBadgeBackgroundColor({ color: "#333333" });
