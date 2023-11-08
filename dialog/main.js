@@ -46,7 +46,7 @@ function addToList(companyName, postsVisible, count = 0) {
   newCompanyCount.textContent = count;
 
   // Style & content for the list item remove button
-  svgRemoveIcon.src = "icons/tmp_delete_icon.svg";
+  svgRemoveIcon.src = "icons/delete.svg";
   svgRemoveIcon.alt = "";
   newCompanyRemove.className = "icon";
   newCompanyRemove.appendChild(svgRemoveIcon);
@@ -56,10 +56,10 @@ function addToList(companyName, postsVisible, count = 0) {
   newCompanyToggle.className = "icon";
   svgVisibility.alt = "";
   if (postsVisible) {
-    svgVisibility.src = "icons/tmp_hide_icon.svg";
+    svgVisibility.src = "icons/hide.svg";
     newCompanyToggle.classList.add("visible");
   } else {
-    svgVisibility.src = "icons/tmp_show_icon.svg";
+    svgVisibility.src = "icons/show.svg";
   }
   newCompanyToggle.appendChild(svgVisibility);
 
@@ -148,11 +148,11 @@ function handleToggleVisibility(e) {
 
   if (button.classList.contains("visible")) {
     button.classList.remove("visible");
-    icon.src = "icons/tmp_show_icon.svg";
+    icon.src = "icons/show.svg";
     button.ariaLabel = `Show postings from ${companyName}`;
   } else {
     button.classList.add("visible");
-    icon.src = "icons/tmp_hide_icon.svg";
+    icon.src = "icons/hide.svg";
     button.ariaLabel = `Hide postings from ${companyName}`;
   }
 

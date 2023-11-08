@@ -141,7 +141,7 @@ tbody {
 .table-company-count {
   display: flex;
   align-items: center;
-  width: calc(20% - 12px);
+  width: 20%;
 }
 
 .button-group button:first-of-type {
