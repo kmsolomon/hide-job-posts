@@ -20,7 +20,6 @@ function clearList(includePlaceholder = false) {
   }
 }
 
-// TODO -- sometimes not clearing placeholder when we add item to list
 // Add a company to the hide list in the popup
 function addToList(companyName, postsVisible, count = 0) {
   const companyList = document.getElementById("companyTableBody");
@@ -33,6 +32,9 @@ function addToList(companyName, postsVisible, count = 0) {
     type: "button",
     ariaLabel: `Remove ${companyName} from list`,
   });
+  const buttonGroup = document.createElement("div");
+  const svgRemoveIcon = document.createElement("img");
+  const svgVisibility = document.createElement("img");
   const newCompanyToggle = document.createElement("button", {
     type: "button",
   });
@@ -44,24 +46,31 @@ function addToList(companyName, postsVisible, count = 0) {
   newCompanyCount.textContent = count;
 
   // Style & content for the list item remove button
-  newCompanyRemove.className = "btn";
-  newCompanyRemove.appendChild(document.createTextNode("Remove"));
+  svgRemoveIcon.src = "icons/tmp_delete_icon.svg";
+  svgRemoveIcon.alt = "";
+  newCompanyRemove.className = "icon";
+  newCompanyRemove.appendChild(svgRemoveIcon);
   newCompanyRemove.addEventListener("click", handleRemoveListItem);
 
   // Style & content for the list item toggle button
-  newCompanyToggle.className = "btn";
+  newCompanyToggle.className = "icon";
+  svgVisibility.alt = "";
   if (postsVisible) {
+    svgVisibility.src = "icons/tmp_hide_icon.svg";
     newCompanyToggle.classList.add("visible");
-    newCompanyToggle.appendChild(document.createTextNode("Hide"));
   } else {
-    newCompanyToggle.appendChild(document.createTextNode("Show"));
+    svgVisibility.src = "icons/tmp_show_icon.svg";
   }
+  newCompanyToggle.appendChild(svgVisibility);
 
   newCompanyToggle.addEventListener("click", handleToggleVisibility);
 
+  buttonGroup.className = "button-group";
+  buttonGroup.appendChild(newCompanyToggle);
+  buttonGroup.appendChild(newCompanyRemove);
+
   newCompanyNameTd.appendChild(newCompanyText);
-  newCompanyNameTd.appendChild(newCompanyToggle);
-  newCompanyNameTd.appendChild(newCompanyRemove);
+  newCompanyNameTd.appendChild(buttonGroup);
   newCompanyCountTd.appendChild(newCompanyCount);
   newCompanyRow.appendChild(newCompanyNameTd);
   newCompanyRow.appendChild(newCompanyCountTd);
@@ -132,21 +141,18 @@ async function handleRemoveListItem(e) {
 }
 
 function handleToggleVisibility(e) {
-  const parentElement = this.parentElement;
-  const companyName = parentElement.querySelector(
-    ".table-company-name span"
-  ).innerText;
-  //toggleStorageVisibility(companyName);
+  const parentElement = this.closest("td");
+  const companyName = parentElement.querySelector("span").innerText;
+  const button = parentElement.querySelector("button");
+  const icon = button.querySelector("img");
 
-  // todo probably UI stuff here to change aria-label and button icon
-  const button = e.target;
   if (button.classList.contains("visible")) {
     button.classList.remove("visible");
-    button.innerText = "Show";
+    icon.src = "icons/tmp_show_icon.svg";
     button.ariaLabel = `Show postings from ${companyName}`;
   } else {
     button.classList.add("visible");
-    button.innerText = "Hide";
+    icon.src = "icons/tmp_hide_icon.svg";
     button.ariaLabel = `Hide postings from ${companyName}`;
   }
 

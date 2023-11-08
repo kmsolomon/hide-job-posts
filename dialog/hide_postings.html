@@ -8,21 +8,28 @@
 
   <body>
     <div id="popup-content">
-      <h1>Hide Job Posts</h1>
-      <h2>Hide companies</h2>
       <div>
         <label for="companyName">Company name:</label>
         <div id="companyNameError" class="hide"></div>
-        <input id="companyName" type="text" />
-        <button id="addCompany" type="button">Add to hide list</button>
+        <div class="input-wrapper">
+          <input id="companyName" type="text" maxlength="100" />
+          <button
+            id="addCompany"
+            class="icon"
+            type="button"
+            aria-label="Add to list"
+          >
+            <img src="icons/add.svg" alt="" />
+          </button>
+        </div>
       </div>
 
-      <div id="listContainer" class="hide">
+      <div id="listContainer">
         <table id="companyList">
           <thead>
             <tr>
-              <th>Company</th>
-              <th>Posts</th>
+              <th scope="col">Company</th>
+              <th scope="col">Posts</th>
             </tr>
           </thead>
           <tbody id="companyTableBody"></tbody>

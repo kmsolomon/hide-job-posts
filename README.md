@@ -13,5 +13,9 @@ To do. Add detailed instructions/screenshots.
 ## Work in progress:
 
 - error handling
-- make it prettier (visually)
 - make it prettier (refactoring)
+- :bug: Make sure using context menu doesn't add it to the list if it's already there
+
+## Credit
+
+Icons used in popup are from [Material Icons by Google](https://github.com/google/material-design-icons)
