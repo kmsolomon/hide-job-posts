@@ -322,10 +322,12 @@ function onStorageChange(changes, area) {
           oldValues[i].name === newValues[i].name &&
           oldValues[i].numPosts !== newValues[i].numPosts
         ) {
-          countUpdates.set(newValues[i].name, newValues[i].numPosts);
+          countUpdates.set(
+            newValues[i].name.toLowerCase(),
+            newValues[i].numPosts
+          );
         }
       }
-
       if (countUpdates.size > 0) {
         updateUICountMultiple(countUpdates);
       }
