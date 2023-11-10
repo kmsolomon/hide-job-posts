@@ -12,9 +12,9 @@ To do. Add detailed instructions/screenshots.
 
 ## Work in progress:
 
-- error handling
+- error handling (make sure error clears if you try to enter invalid name and then do a valid one, hide popup content if not on correct page)
 - make it prettier (refactoring)
-- :bug: Make sure using context menu doesn't add it to the list if it's already there
+- :bug: On initial load of extension, hiding via context menu before ever opening popup means the values are not saved to storage
 
 ## Credit
 

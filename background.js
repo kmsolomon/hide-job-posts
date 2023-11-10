@@ -153,12 +153,14 @@ async function updateHiddenCount(companyName, updatedCount) {
     const nameExists = storedCompanies.companyNames.some(
       (company) => company.name === companyName
     );
+
     if (nameExists) {
       const updatedCompanies = storedCompanies.companyNames.map((company) => {
         if (company.name === companyName) {
           return {
             ...company,
             numPosts: updatedCount,
+            visible: false,
           };
         } else return company;
       });
