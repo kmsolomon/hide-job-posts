@@ -66,6 +66,7 @@ async function addCompanyToStorage(companyName) {
 async function removeCompanyFromStorage(companyName) {
   const storedCompanies = await browser.storage.local.get("companyNames");
   const currentCompanies = storedCompanies.companyNames;
+  let total = 0;
 
   if (Array.isArray(currentCompanies) && currentCompanies.length > 0) {
     const filteredNames = currentCompanies.filter(
@@ -73,7 +74,14 @@ async function removeCompanyFromStorage(companyName) {
     );
 
     if (filteredNames.length < currentCompanies.length) {
-      await browser.storage.local.set({ companyNames: filteredNames });
+      filteredNames.forEach((company) => {
+        total += company.visible ? 0 : company.numPosts;
+      });
+      await browser.storage.local.set({
+        companyNames: filteredNames,
+        totalHidden: total,
+      });
+      updateBadgeText();
       const tabId = await getTabId();
 
       browser.tabs.sendMessage(tabId, {
@@ -95,20 +103,29 @@ async function clearCompanyStorage() {
 async function toggleCompanyVisibility(companyName) {
   const storedCompanies = await browser.storage.local.get("companyNames");
   let visible = false;
+  let total = 0;
 
   if (storedCompanies.companyNames) {
     const updatedCompanies = storedCompanies.companyNames.map((company) => {
       if (company.name === companyName) {
         visible = !company.visible;
+        total += visible ? 0 : company.numPosts;
         return {
           ...company,
           visible,
         };
       } else {
+        total += company.visible ? 0 : company.numPosts;
         return company;
       }
     });
-    await browser.storage.local.set({ companyNames: updatedCompanies });
+    await browser.storage.local.set({
+      companyNames: updatedCompanies,
+      totalHidden: total,
+    });
+
+    updateBadgeText();
+
     const tabId = await getTabId();
     const command = visible ? "showCompany" : "hideCompany";
 
@@ -147,7 +164,7 @@ async function initHidePostings() {
 
 async function updateHiddenCount(companyName, updatedCount) {
   const storedCompanies = await browser.storage.local.get("companyNames");
-  let storedTotal = await browser.storage.local.get("totalHidden");
+  let total = 0;
   if (Array.isArray(storedCompanies.companyNames)) {
     // if company already exists
     const nameExists = storedCompanies.companyNames.some(
@@ -157,32 +174,48 @@ async function updateHiddenCount(companyName, updatedCount) {
     if (nameExists) {
       const updatedCompanies = storedCompanies.companyNames.map((company) => {
         if (company.name === companyName) {
+          total += updatedCount;
           return {
             ...company,
             numPosts: updatedCount,
             visible: false,
           };
-        } else return company;
+        } else {
+          if (!company.visible) total += company.numPosts;
+          return company;
+        }
       });
-
-      await browser.storage.local.set({ companyNames: updatedCompanies });
+      await browser.storage.local.set({
+        companyNames: updatedCompanies,
+        totalHidden: total,
+      });
     } else {
       const updatedCompanies = storedCompanies.companyNames.concat({
         name: companyName,
         visible: false,
         numPosts: updatedCount,
       });
-      await browser.storage.local.set({ companyNames: updatedCompanies });
+      updatedCompanies.forEach((company) => {
+        if (!company.visible) total += company.numPosts;
+      });
+      await browser.storage.local.set({
+        companyNames: updatedCompanies,
+        totalHidden: total,
+      });
     }
-
-    if (typeof storedTotal.totalHidden === "number") {
-      const total = updatedCount + storedTotal.totalHidden;
-      await browser.storage.local.set({ totalHidden: total });
-    } else {
-      await browser.storage.local.set({ totalHidden: updatedCount });
-    }
-    updateBadgeText();
+  } else {
+    await browser.storage.local.set({
+      companyNames: [
+        {
+          name: companyName,
+          numPosts: updatedCount,
+          visible: false,
+        },
+      ],
+      totalHidden: updatedCount,
+    });
   }
+  updateBadgeText();
 }
 
 async function updateMultipleCount(updateMap) {
@@ -201,12 +234,15 @@ async function updateMultipleCount(updateMap) {
       } else return company;
     });
 
-    await browser.storage.local.set({ companyNames: updatedCompanies });
-
     updatedCompanies.forEach((company) => {
       if (!company.visible) {
         total += company.numPosts;
       }
+    });
+
+    await browser.storage.local.set({
+      companyNames: updatedCompanies,
+      totalHidden: total,
     });
     const displayBadgeText =
       total !== 0 ? (total > 99 ? "99+" : total.toString()) : "";
@@ -256,7 +292,7 @@ function isSearchResultsUrl(url) {
 
 async function updateBadgeText() {
   let total = await browser.storage.local.get("totalHidden");
-  if (total.totalHidden && typeof total.totalHidden === "number") {
+  if (typeof total.totalHidden === "number") {
     const hidden = total.totalHidden;
     browser.browserAction.setBadgeText({
       text: hidden > 99 ? "99+" : hidden === 0 ? "" : hidden.toString(),

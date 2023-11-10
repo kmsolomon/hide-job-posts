@@ -308,45 +308,17 @@ async function initHidePostings() {
   }
 }
 
-function onStorageChange(changes, area) {
-  if (area === "local" && changes.hasOwnProperty("companyNames")) {
-    const oldValues = changes.companyNames.oldValue;
-    const newValues = changes.companyNames.newValue;
-    const countUpdates = new Map();
-    let total = 0;
-
-    // Looking for when the numPosts have updated
-    if (oldValues.length === newValues.length) {
-      for (let i = 0; i < oldValues.length; i++) {
-        if (
-          oldValues[i].name === newValues[i].name &&
-          oldValues[i].numPosts !== newValues[i].numPosts
-        ) {
-          countUpdates.set(
-            newValues[i].name.toLowerCase(),
-            newValues[i].numPosts
-          );
-        }
-      }
-      if (countUpdates.size > 0) {
-        updateUICountMultiple(countUpdates);
-      }
-    }
-
-    // For showing the current number of hidden posts on the badge text
-    for (let i = 0; i < newValues.length; i++) {
-      if (!newValues[i].visible) {
-        total += newValues[i].numPosts;
-      }
-    }
-    const displayBadgeText =
-      total !== 0 ? (total > 99 ? "99+" : total.toString()) : "";
-    browser.storage.local.set({ totalHidden: total });
-    browser.browserAction.setBadgeText({ text: displayBadgeText });
+browser.runtime.onMessage.addListener(async (message) => {
+  switch (message.command) {
+    case "updateCount":
+      updateUICount(message.companyName, message.count);
+      break;
+    case "updateMultipleCount":
+      updateUICountMultiple(message.updates);
+      break;
+    default:
+      break;
   }
-}
-
-// Listening to when the browser storage updates so the popup knows to update the UI
-browser.storage.onChanged.addListener(onStorageChange);
+});
 
 initializePopup();
