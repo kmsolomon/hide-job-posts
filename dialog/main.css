@@ -3,11 +3,14 @@ body {
   box-sizing: border-box;
   font-size: 14px;
   font-family: Arial, Helvetica, sans-serif;
-  width: 400px;
 }
 
 #popup-content {
   width: 400px;
+}
+
+#error-content {
+  width: 250px;
 }
 
 *,
@@ -24,7 +27,7 @@ h2 {
   font-size: 1rem;
 }
 
-.hidden {
+.hide {
   display: none;
 }
 

@@ -242,52 +242,67 @@ async function addCompanyHandler(event) {
   }
 }
 
-// TODO -- need to consider how to handle re-renders when the popup is open and you scroll the results (potentially updating the hidden count)
 async function initializePopup() {
   let storedNames = await browser.storage.local.get("companyNames");
   const addButton = document.getElementById("addCompany");
   const resetButton = document.getElementById("resetList");
   const companyNameInput = document.getElementById("companyName");
-  if (
-    typeof storedNames === "object" &&
-    !storedNames.hasOwnProperty("companyNames")
-  ) {
-    storedNames = { companyNames: [] };
-    await browser.storage.local.set({ companyNames: [] });
-  } else if (typeof storedNames !== "object") {
-    console.log("Something went wrong");
-    // TODO error
-  }
+  const content = document.getElementById("popup-content");
+  const errorContent = document.getElementById("error-content");
+  const activeTab = await browser.tabs.query({
+    active: true,
+    currentWindow: true,
+  });
+  const matches = /\.*:\/\/.*\.linkedin\.com\/jobs\/\.*/i;
+  const isResultsPage = matches.test(activeTab[0].url);
 
-  if (storedNames.companyNames && storedNames.companyNames.length > 0) {
-    storedNames.companyNames.forEach((element) => {
-      addToList(element.name, element.visible, element.numPosts);
-    });
-  } else if (
-    storedNames.companyNames &&
-    storedNames.companyNames.length === 0
-  ) {
-    clearList(true);
-  }
-
-  addButton.addEventListener("click", addCompanyHandler);
-
-  companyNameInput.addEventListener("keydown", async (e) => {
-    if (e.code.toLowerCase() === "enter") {
-      await addCompanyHandler(e);
+  if (!isResultsPage) {
+    content.classList.add("hide");
+    errorContent.classList.remove("hide");
+  } else {
+    content.classList.remove("hide");
+    errorContent.classList.add("hide");
+    if (
+      typeof storedNames === "object" &&
+      !storedNames.hasOwnProperty("companyNames")
+    ) {
+      storedNames = { companyNames: [] };
+      await browser.storage.local.set({ companyNames: [] });
+    } else if (typeof storedNames !== "object") {
+      console.log("Something went wrong");
+      // TODO error
     }
-  });
 
-  resetButton.addEventListener("click", async (e) => {
-    clearList(true);
+    if (storedNames.companyNames && storedNames.companyNames.length > 0) {
+      storedNames.companyNames.forEach((element) => {
+        addToList(element.name, element.visible, element.numPosts);
+      });
+    } else if (
+      storedNames.companyNames &&
+      storedNames.companyNames.length === 0
+    ) {
+      clearList(true);
+    }
 
-    browser.runtime.sendMessage({ command: "emptyStorage" });
-  });
+    addButton.addEventListener("click", addCompanyHandler);
+
+    companyNameInput.addEventListener("keydown", async (e) => {
+      if (e.code.toLowerCase() === "enter") {
+        await addCompanyHandler(e);
+      }
+    });
+
+    resetButton.addEventListener("click", async (e) => {
+      clearList(true);
+
+      browser.runtime.sendMessage({ command: "emptyStorage" });
+    });
+  }
 }
 
 function reportExecuteScriptError(error) {
-  document.querySelector("#popup-content").classList.add("hidden");
-  document.querySelector("#error-content").classList.remove("hidden");
+  document.querySelector("#popup-content").classList.add("hide");
+  document.querySelector("#error-content").classList.remove("hide");
   console.error(
     `Failed to execute hide-job-postings content script: ${error.message}`
   );

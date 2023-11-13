@@ -15,7 +15,6 @@ To do. Add detailed instructions/screenshots.
 
 ## Work in progress:
 
-- error handling (hide popup content if not on correct page)
 - make it prettier (refactoring)
 
 ## Credit
