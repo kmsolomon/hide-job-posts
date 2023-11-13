@@ -15,7 +15,7 @@ To do. Add detailed instructions/screenshots.
 
 ## Work in progress:
 
-- error handling (make sure error clears if you try to enter invalid name and then do a valid one, hide popup content if not on correct page)
+- error handling (hide popup content if not on correct page)
 - make it prettier (refactoring)
 
 ## Credit

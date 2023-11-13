@@ -179,7 +179,7 @@ function setNameFieldError(errorType) {
 
   if (errorType === "duplicate") {
     companyNameError.innerText =
-      "Error: The value you entered is already in the list.";
+      "Error: The entered value is already in the list.";
   } else if (errorType === "empty") {
     companyNameError.innerText = "Error: The company name cannot be blank";
   } else {
@@ -215,7 +215,6 @@ function isValidCompanyName(nameInput) {
     setNameFieldError("duplicate");
     isValid = false;
   }
-
   return isValid;
 }
 
@@ -223,6 +222,7 @@ async function addCompanyHandler(event) {
   const companyNameInput = document.getElementById("companyName");
 
   if (isValidCompanyName(companyNameInput)) {
+    resetNameFieldError();
     const newName = companyNameInput.value;
     const placeholder = document.querySelector(".empty-placeholder");
 
