@@ -11,7 +11,23 @@ Currently the extension uses Manifest V2.
 
 ## How to use
 
-To do. Add detailed instructions/screenshots.
+### Adding a company to the list
+
+Two ways to add a company to the list of companies you want to hide jobs from:
+
+1. Enter the name of the company in the input field in the popup, and click the "+" button to add it to the list.
+2. On the search results page, right click the job post and select "Hide jobs from this company" from the context menu.
+
+### Show/hide posts
+
+Beside each company name in the list of hidden companies, there are two buttons.
+The first button allows you to toggle between showing or hiding the posts from a company. Click it to change between show/hide.
+
+### Remove company from the list
+
+Click the delete button (trash can icon) beside the company name to remove it from the list. This will also show any hidden posts from that company.
+
+Or if you want to remove all entries from the list, click the "Clear all" button.
 
 ## Work in progress:
 
