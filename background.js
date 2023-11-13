@@ -94,7 +94,8 @@ async function removeCompanyFromStorage(companyName) {
 
 async function clearCompanyStorage() {
   const tabId = await getTabId();
-  browser.storage.local.set({ companyNames: [] });
+  browser.storage.local.set({ companyNames: [], totalHidden: 0 });
+  updateBadgeText();
   browser.tabs.sendMessage(tabId, {
     command: "showAll",
   });
