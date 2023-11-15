@@ -6,14 +6,14 @@
   "description": "An extension that lets you choose to hide job postings from companies that you don't want to see in your LinkedIn job search results.",
   "homepage_url": "https://github.com/kmsolomon/hide-job-posts",
   "icons": {
-    "48": "icons/hide-job-posts-48.jpg",
-    "96": "icons/hide-job-posts-96.jpg"
+    "48": "icons/hide-posts-icon-48.png",
+    "96": "icons/hide-posts-icon-96.png"
   },
 
   "permissions": ["activeTab", "storage", "contextMenus", "menus", "tabs"],
 
   "browser_action": {
-    "default_icon": "icons/hide-job-posts-32.jpg",
+    "default_icon": "icons/hide-posts-icon-32.png",
     "default_title": "Hide LinkedIn Job Posts",
     "default_popup": "dialog/hide_postings.html"
   },
